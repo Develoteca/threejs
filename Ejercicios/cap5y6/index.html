@@ -1,0 +1,245 @@
+<!doctype html>
+
+<html>
+  
+  <head>
+    <title>Jumbotron</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/THREEx.WindowResize.js"></script>
+    <style type="text/css">
+      body {
+        padding-top: 50px;
+        padding-bottom: 20px;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Modelos 3D </a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Agregar <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a href="#" id="plano">Plano</a>
+                </li>
+                <li>
+                  <a href="#" id="figura" >Figura</a>
+                </li>
+                <li>
+                  <a href="#" id="cilindro" >Cilindro</a>
+                </li>
+                
+                <li>
+                  <a href="#" id="cubo">Cubo</a>
+                </li>
+                <li>
+                  <a href="#" id="esfera" >Esfera</a>
+                </li>
+              </ul>
+            </li>
+            
+            <li>
+              <a href="#">Inicio</a>
+            </li>
+            <li>
+              <a href="htp://develoteca.com/contacto">contacto</a>
+            </li>
+            <li>
+              <a href="htp://develoteca.com/">Develoteca.com</a>
+            </li>
+          </ul>
+        </div>
+        <!--/.navbar-collapse -->
+      </div>
+    </div>
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="container">
+      <!-- Example row of columns -->
+      <div id="render"></div>
+      <hr>
+      <footer>
+        <p>&copy; Company 2013</p>
+      </footer>
+    </div>
+    <!-- /container -->
+	<script src="js/three.min.js"></script>
+	<script src="js/OrbitControls.js"></script>
+	
+	<script>
+			/******************************* variables *******************/
+			//Preparamos el render
+			var Render=new THREE.WebGLRenderer();
+			//El escenario
+			var Escenario=new THREE.Scene();
+			
+			// la Figura 
+			var Figura;
+			var controls;
+			var Ancho=window.innerWidth-50;
+			var Alto=window.innerHeight-50;
+			
+			var Angulo = 45;	
+			var Aspecto=Ancho/Alto;
+			var cerca=0.1;
+			var lejos=10000;
+			//La cámara
+			var Camara=new THREE.PerspectiveCamera(Angulo,Aspecto,cerca,lejos);
+			
+			// textura la misma indicación que maneja la figura
+			var textura = new THREE.ImageUtils.loadTexture('texturas/muro.jpg');
+			
+			// textura la misma indicación que maneja las figuras geometricas
+			var textura_geometrias = new THREE.ImageUtils.loadTexture('texturas/muro.jpg');
+			var material_geometrias = new THREE.MeshBasicMaterial({map:textura_geometrias,side:THREE.DoubleSide,wireframe:false});
+			
+			// textura la misma indicación que maneja el plano
+			var textura_plano = new THREE.ImageUtils.loadTexture('texturas/cesped.jpg');
+			
+			
+			THREEx.WindowResize(Render,Camara);
+			/******************************* inicio *******************/
+			function inicio(){
+					//Tamaño del render(resultado)
+					Render.setSize(Ancho,Alto);
+					//Se agrega el render al documento html
+					document.getElementById('render').appendChild(Render.domElement);
+					//Acercamos la cámara en z es profundidad para ver el punto
+					Camara.position.z=100;
+					Camara.position.y=100;
+					Camara.rotation.y=Math.PI;
+					
+					//agregando la cámara al escenario
+					Escenario.add(Camara);
+					// Territorio 
+					//crear_plano();
+					// cargar nuevos modelos
+					//cargar_modelo();
+					// agregamos todo el escenario y la cámara al render
+					controls=new THREE.OrbitControls(Camara,Render.domElement);
+			}
+			function cargar_modelo(){
+					
+					// Geometría
+					Geometria=new THREE.Geometry();
+					var vertices=[[2,7,0],[7,2,0],[12,7,0],[12,17,0],[7,12,0],[2,17,0],[2,7,0]];
+					
+					var long_vertices=vertices.length;
+					var array_extrude=[];
+					
+					for(i=0;i<long_vertices;i++){
+							x=vertices[i][0];
+							y=vertices[i][1];
+							z=vertices[i][2];
+							//Agregamos vértices al vector
+							Vector=new THREE.Vector3(x,y,z);
+							//Agregamos el vector a la geometría
+							Geometria.vertices.push(Vector);   
+							array_extrude.push(Vector);
+					}
+					
+					// figura
+					var forma_figura=new THREE.Shape(array_extrude);
+					
+					// extrusión 
+					var datos_extrusion={
+										amount:10, //cantidad de profundidad 
+										bevelEnabled:false, // activando bisel
+										bevelSegments:1, // segmentos del bisel
+										steps:10, // "profundidad y Núm. de segmentos que marcan la profundidad“
+										bevelThickness:100 // grosor del bisel
+										};
+					
+					var extrude_geometria=new THREE.ExtrudeGeometry(forma_figura,datos_extrusion);
+					//repetir la textura figura
+					textura.repeat.set(0.06,0.06);
+					//repetir la textura de la figura
+					textura.wrapS = textura.wrapT = THREE.repeatWrapping;
+					//Material de la figura
+					var material = new THREE.MeshBasicMaterial({map:textura,side:THREE.DoubleSide,wireframe:false});
+					// la malla 
+					var mallaextrusion=new THREE.Mesh(extrude_geometria,material);
+					// agregamos un material para que el punto tenga color
+					Material=new THREE.ParticleBasicMaterial({color:0XFF0000});
+					// creamos una partícula con la geometría y el material
+					Figura=new THREE.Line(Geometria,Material);
+					// agregamos la partícula al escenario
+					Escenario.add(Figura);
+					Escenario.add(mallaextrusion);
+			}
+			$('#figura').click(function(){cargar_modelo();});
+			function crear_plano(){
+					//Geometría del plano
+					Geometria_plano=new THREE.PlaneGeometry(100,100,10,10);
+					//Textura
+					
+					textura_plano.wrapS=textura_plano.wrapT=THREE.RepeatWrapping;
+					textura_plano.repeat.set(10,10);
+					// Material y agregado la textura
+					Material_plano=new THREE.MeshBasicMaterial({map:textura_plano,side:THREE.DoubleSide});
+					// El plano (Territorio)
+					Territorio=new THREE.Mesh(Geometria_plano,Material_plano);
+					
+					Territorio.rotation.x=Math.PI/2;
+					Escenario.add(Territorio);
+			}
+			$('#plano').click(function(){crear_plano();});
+			
+			function crear_cubo(){
+				//CubeGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
+				geometriaCubo = new THREE.CubeGeometry( 10, 10, 10 );
+				var mallacubo=new THREE.Mesh(geometriaCubo,material_geometrias);
+				mallacubo.position.z=-10;
+				mallacubo.position.y=5;
+				Escenario.add(mallacubo);
+			}
+			$('#cubo').click(function(){crear_cubo();});
+			
+			function cargar_cilindro(){ 
+				//CylinderGeometry(radiusTop, radiusBottom, height, radiusSegments, heightSegments, openEnded)
+				geometriaCilindro=new THREE.CylinderGeometry(10, 10, 20, 100, 1, false);
+				var mallaCilindro = new THREE.Mesh(geometriaCilindro,material_geometrias);	
+				mallaCilindro.position.z=-40;
+				mallaCilindro.position.y=5;
+				Escenario.add(mallaCilindro);	  
+			}
+				$('#cilindro').click(function(){cargar_cilindro();});
+				
+			function cargar_esfera(){
+				//SphereGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)			
+				geometriaSphere=new THREE.SphereGeometry(10, 10, 10);	
+				var mallaesfera = new THREE.Mesh(geometriaSphere,material_geometrias);
+				mallaesfera.position.z=40;
+				mallaesfera.position.y=5;
+				Escenario.add(mallaesfera);
+			}
+				$('#esfera').click(function(){cargar_esfera();});
+
+			function animacion(){
+					requestAnimationFrame(animacion);
+					render_modelo();
+			}
+			function render_modelo(){
+					controls.update();
+					Escenario.rotation.z=Escenario.rotation.z+0.02;
+					Render.render(Escenario,Camara);
+			}
+			/**************************llamado a las funciones ******************/
+			inicio();
+			animacion();
+	</script>
+
+  </body>
+
+</html>
