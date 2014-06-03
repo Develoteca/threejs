@@ -1,4 +1,4 @@
-threejs
+Ejericios del curso de THREE.JS
 =======
 
-THREEJS
+three.js
